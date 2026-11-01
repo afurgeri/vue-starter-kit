@@ -1,0 +1,125 @@
+<script setup lang="ts">
+import { Head, setLayoutProps } from '@inertiajs/vue3';
+import CrudPage from '@/components/crud/CrudPage.vue';
+import { Badge } from '@/components/ui/badge';
+import UserPasswordDialog from '@/pages/users/UserPasswordDialog.vue';
+import UserRolesField from '@/pages/users/UserRolesField.vue';
+import { useTranslation } from '@/composables/useTranslation';
+import {
+    create as createUser,
+    destroy as destroyUser,
+    edit as editUser,
+    index as usersIndex,
+    show as showUser,
+    store as storeUser,
+    update as updateUser,
+} from '@/routes/users';
+import type { CrudPaginator, CrudRecord, CrudSchema } from '@/types/crud';
+
+type User = CrudRecord & {
+    id: string | number;
+    name: string;
+    email: string;
+    roles: Role[];
+    role_ids: Array<string | number>;
+    is_active: boolean;
+    can: {
+        show: boolean;
+        update: boolean;
+        delete: boolean;
+    };
+};
+
+type Role = {
+    id: string | number;
+    name: string;
+};
+
+defineProps<{
+    crud: CrudSchema;
+    users: CrudPaginator<User>;
+    roles: Role[];
+    can: {
+        create: boolean;
+    };
+}>();
+
+const { t } = useTranslation();
+
+setLayoutProps({
+    breadcrumbs: [
+        {
+            title: t('Users'),
+            href: usersIndex(),
+        },
+    ],
+});
+</script>
+
+<template>
+    <Head :title="crud.title" />
+
+    <CrudPage
+        :schema="crud"
+        :records="users"
+        :create="{
+            can: can.create,
+            href: createUser(),
+            action: storeUser.form(),
+            label: t('Create :name', { name: t('User') }),
+            title: t('Create :name', { name: t('User') }),
+            description: t('Add a new user and choose their roles.'),
+        }"
+        :edit="{
+            action: (record) => updateUser.form.patch(Number(record.id)),
+            href: (record) => editUser(Number(record.id)),
+            can: (record) => record.can.update,
+            title: (record) => t('Edit :name', { name: record.name }),
+            description: t('Update the user details and assigned roles.'),
+        }"
+        :show="{
+            href: (record) => showUser(Number(record.id)),
+            can: (record) => record.can.show,
+            title: (record) => t('View :name', { name: record.name }),
+        }"
+        :destroy="{
+            action: (record) => destroyUser.form.delete(Number(record.id)),
+            can: (record) => record.can.delete,
+            title: (record) => t('Delete :name?', { name: record.name }),
+        }"
+    >
+        <template #cell-name="{ value }">
+            <span class="font-medium">{{ value }}</span>
+        </template>
+
+        <template #cell-roles="{ value }">
+            <div class="flex flex-wrap gap-1">
+                <Badge v-for="role in value as Role[]" :key="role.id">
+                    {{ role.name }}
+                </Badge>
+            </div>
+        </template>
+
+        <template #cell-is_active="{ value }">
+            <Badge :variant="value ? 'secondary' : 'outline'">
+                {{ value ? t('Active') : t('Inactive') }}
+            </Badge>
+        </template>
+
+        <template #actions-before="{ record }">
+            <UserPasswordDialog v-if="record.can.update" :user="record" />
+        </template>
+
+        <template #create-fields="{ errors }">
+            <UserRolesField :roles="roles" :error="errors.roles" />
+        </template>
+
+        <template #edit-fields="{ record, errors }">
+            <UserRolesField
+                :roles="roles"
+                :selected-ids="record.role_ids"
+                :error="errors.roles"
+            />
+        </template>
+    </CrudPage>
+</template>

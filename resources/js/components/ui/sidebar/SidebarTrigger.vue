@@ -1,0 +1,30 @@
+<script setup lang="ts">
+import type { HTMLAttributes } from "vue"
+import { PanelLeftClose, PanelLeftOpen } from "@lucide/vue"
+import { cn } from "@/lib/utils"
+import { Button } from '@/components/ui/button'
+import { useSidebar } from "./utils"
+import { useTranslation } from "@/composables/useTranslation"
+
+const props = defineProps<{
+  class?: HTMLAttributes["class"]
+}>()
+
+const { isMobile, state, toggleSidebar } = useSidebar()
+const { t } = useTranslation()
+</script>
+
+<template>
+  <Button
+    data-sidebar="trigger"
+    data-slot="sidebar-trigger"
+    variant="ghost"
+    size="icon"
+    :class="cn('h-7 w-7', props.class)"
+    @click="toggleSidebar"
+  >
+    <PanelLeftOpen v-if="isMobile || state === 'collapsed'" />
+    <PanelLeftClose v-else />
+    <span class="sr-only">{{ t('Toggle sidebar') }}</span>
+  </Button>
+</template>
