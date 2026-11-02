@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2c46658d1fb59391278538a7d2371607",
+    "content-hash": "a0dede54a35ac3c9e7adefbc22187ab5",
     "packages": [
         {
             "name": "afurgeri/laravel-crud",
